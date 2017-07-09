@@ -8,7 +8,7 @@ const expect = chai.expect;
 describe('server', function(done) {
     let server;
     before(function() {
-        server = require('../../server/server.js');
+        server = require('../../../server/server.js');
     });
     
     it('should start a web server', function() {

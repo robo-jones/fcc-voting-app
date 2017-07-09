@@ -9,7 +9,8 @@ const mongodb = {
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    db: process.env.DB
+    db: process.env.DB,
+    dbUrl: `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB}`
 };
 
 module.exports = {
