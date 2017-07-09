@@ -5,7 +5,7 @@ const http = require('http');
 
 const expect = chai.expect;
 
-describe('server', function(done) {
+describe('Server', function(done) {
     let server;
     before(function() {
         server = require('../../../server/server.js');

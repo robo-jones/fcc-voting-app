@@ -41,6 +41,6 @@ pollSchema.path('options').validate(function(options) {
 
 pollSchema.path('options').schema.path('votes').validate(function(votes) {
     return (votes % 1 === 0);
-}, 'votes must me an integer');
+}, 'votes must be an integer');
 
 module.exports = mongoose.model('poll', pollSchema);

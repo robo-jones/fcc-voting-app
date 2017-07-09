@@ -16,7 +16,7 @@ describe('User datatbase interface', function() {
             return expect(user.validate()).to.eventually.be.fulfilled;
         });
         
-        it('should not allow a user to be saved without a username', function() {
+        it('should prevent saving without a username', function() {
             const user = new User({});
             
            return expect(user.validate()).to.eventually.be.rejected;
