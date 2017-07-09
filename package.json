@@ -28,6 +28,8 @@
     "chai": "^4.0.2",
     "chai-as-promised": "^7.1.1",
     "mocha": "^3.4.2",
+    "sinon": "^2.3.6",
+    "sinon-chai": "^2.11.0",
     "uglifyjs-webpack-plugin": "^0.4.6",
     "webpack": "^3.0.0",
     "webpack-dev-server": "^2.5.0"
