@@ -6,7 +6,9 @@ const ObjectID = require('mongodb').ObjectID;
 
 const expect = chai.expect;
 
-describe('Poll database interface', function() {
+chai.use(require('chai-as-promised'));
+
+describe('Poll database schema', function() {
     const properPoll = {
         title: 'poll title',
         creator: new ObjectID(),

@@ -6,7 +6,7 @@ const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
 
-describe('User datatbase interface', function() {
+describe('User datatbase schema', function() {
     const goodUser = { userName: 'Bob' };
     
     describe('Validation', function() {
