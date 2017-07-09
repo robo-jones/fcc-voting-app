@@ -1,6 +1,6 @@
 'use strict';
 
-const User = require('../../../../../server/database/interfaces/user.js');
+const User = require('../../../../../server/database/schemas/user.js');
 const chai = require('chai');
 const expect = chai.expect;
 

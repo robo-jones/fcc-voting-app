@@ -1,6 +1,6 @@
 'use strict';
 
-const Poll = require('../../../../../server/database/interfaces/poll.js');
+const Poll = require('../../../../../server/database/schemas/poll.js');
 const chai = require('chai');
 const ObjectID = require('mongodb').ObjectID;
 
