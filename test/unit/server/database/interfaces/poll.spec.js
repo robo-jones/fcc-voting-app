@@ -76,7 +76,7 @@ describe('Poll database interface', function() {
         
         it('should prevent saving unless there are at least two options', function() {
             const badPoll = JSON.parse(JSON.stringify(properPoll));
-            badPoll.options = [{}];
+            badPoll.options.pop();
             
             const poll = new Poll(badPoll);
             
