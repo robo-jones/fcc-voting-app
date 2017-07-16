@@ -13,7 +13,10 @@ const mongodb = {
     dbUrl: `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB}`
 };
 
+const nodeEnv = process.env.NODE_ENV;
+
 module.exports = {
     server,
-    mongodb
+    mongodb, 
+    nodeEnv
 };
