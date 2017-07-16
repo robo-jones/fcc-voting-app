@@ -27,6 +27,7 @@
     "babel-preset-react": "^6.24.1",
     "chai": "^4.0.2",
     "chai-as-promised": "^7.1.1",
+    "chai-http": "^3.0.0",
     "mocha": "^3.4.2",
     "sinon": "^2.3.6",
     "sinon-chai": "^2.11.0",
@@ -35,6 +36,7 @@
     "webpack-dev-server": "^2.5.0"
   },
   "dependencies": {
+    "body-parser": "^1.17.2",
     "express": "^4.15.3",
     "mongoose": "^4.11.1",
     "react": "^15.6.1",
