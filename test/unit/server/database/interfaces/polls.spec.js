@@ -81,14 +81,13 @@ describe('Polls database interface', () => {
                     }
                 }
             };
-            
         });
         
         it('should search for a poll with the provided id', () => {
             const findSpy = sinon.spy(FakePollModel, 'findById');
             
             pollInterfaceFactory(FakePollModel).findPoll('1234');
-            expect(findSpy).to.have.been.called;
+            expect(findSpy).to.have.been.calledWith('1234');
         });
         
         it('should return a promise that resolves to the poll document, if it exists', async () => {
@@ -98,6 +97,39 @@ describe('Polls database interface', () => {
         
         it('should return a rejected promise if the poll does not exist', async () => {
             const result = pollInterfaceFactory(FakePollModel).findPoll('6969');
+            return expect(result).to.eventually.be.rejectedWith('poll not found');
+        });
+    });
+    
+    describe ('deletePoll()', () => {
+        let FakePollModel;
+        
+        beforeEach(() => {
+            FakePollModel = {
+                findByIdAndRemove: function(id, callback) {
+                    if (id === '1234') {
+                        callback(undefined, goodPollDocument);
+                    } else {
+                        callback('poll not found', undefined);
+                    }
+                }
+            };
+        });
+        
+        it('should search for a poll with the provided id and delete it', () => {
+            const deleteSpy = sinon.spy(FakePollModel, 'findByIdAndRemove');
+            
+            pollInterfaceFactory(FakePollModel).deletePoll('1234');
+            expect(deleteSpy).to.have.been.calledWith('1234');
+        });
+        
+        it('should return a promise that resolves to the deleted poll upon succedd', async () => {
+            const result = await pollInterfaceFactory(FakePollModel).deletePoll('1234');
+            expect(result).to.equal(goodPollDocument);
+        });
+        
+        it('should return a rejected promise if the poll does not exist', () => {
+            const result = pollInterfaceFactory(FakePollModel).deletePoll('6969');
             return expect(result).to.eventually.be.rejectedWith('poll not found');
         });
     });

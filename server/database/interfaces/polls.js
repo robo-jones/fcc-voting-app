@@ -18,9 +18,21 @@ const pollInterfaceFactory = (PollModel) => {
         
     };
     
+    const deletePoll = (id) => {
+        return new Promise ((resolve, reject) => {
+            PollModel.findByIdAndRemove(id, (err, deletedPoll) => {
+                if(err) {
+                    reject(err);
+                }
+                resolve(deletedPoll);
+            });
+        });
+    };
+    
     return {
         createPoll,
-        findPoll
+        findPoll,
+        deletePoll
     };
 };
 
