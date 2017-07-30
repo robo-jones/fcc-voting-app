@@ -13,7 +13,27 @@ const UserInterfaceFactory = function(UserModel) {
                 if (error) {
                     reject(error);
                 } else {
-                    resolve(results);
+                    if(results) {
+                        resolve(results);
+                    } else {
+                        reject('user not found');
+                    }
+                }
+            });
+        });
+    };
+    
+    const findUserByGithub = (gitHubProfile) => {
+        return new Promise(function(resolve, reject) {
+            UserModel.findOne({ 'github.id': gitHubProfile.id }, function(error, results) {
+                if (error) {
+                    reject(error);
+                } else {
+                    if(results) {
+                        resolve(results);
+                    } else {
+                        reject('user not found');
+                    }
                 }
             });
         });
@@ -21,7 +41,8 @@ const UserInterfaceFactory = function(UserModel) {
     
     return {
         createUser,
-        findUser
+        findUser,
+        findUserByGithub
     };
 };
 

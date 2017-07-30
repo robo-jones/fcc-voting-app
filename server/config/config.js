@@ -15,7 +15,8 @@ const mongodb = {
 
 const githubOauth = {
     clientId: process.env.GITHUB_KEY,
-    clientSecret: process.env.GITHUB_SECRET
+    clientSecret: process.env.GITHUB_SECRET,
+    callback: 'https://fcc-dynamicwebapp-projects-robojones.c9users.io/auth/github/callback'
 };
 
 const session = {

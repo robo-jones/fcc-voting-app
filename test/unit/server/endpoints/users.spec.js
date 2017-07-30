@@ -34,7 +34,7 @@ describe('Users endpoint', () => {
                 const findUserSpy = sinon.spy(fakeUserRepo, 'findUser');
                 
                 await chai.request(app).get(`/users/${userId}`);
-                expect(findUserSpy).to.have.been.calledWith(userId);
+                return expect(findUserSpy).to.have.been.calledWith(userId);
             });
             
             it('should return a JSON', async () => {
@@ -98,7 +98,7 @@ describe('Users endpoint', () => {
                 const createUserSpy = sinon.spy(fakeUserRepo, 'createUser');
                 
                 await chai.request(app).post('/users').send({ username: 'foo' });
-                expect(createUserSpy).to.have.been.calledWith({ userName: 'foo' });
+                return expect(createUserSpy).to.have.been.calledWith({ userName: 'foo' });
             });
             
             it('should redirect the user to their polls page on success', async () => {

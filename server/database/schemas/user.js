@@ -8,6 +8,11 @@ const userSchema = new Schema({
     userName: {
         type: String,
         required: true
+    },
+    github: {
+        id: String,
+        username: String,
+        displayName: String
     }
 });
 

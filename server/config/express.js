@@ -11,9 +11,11 @@ if (config.nodeEnv === 'development') {
     app.use(morgan('dev'));
 }
 
-//wire up users endpoint
+//wire up users repository
 const userModel = require('../database/schemas/user.js');
 const userRepository = require('../database/interfaces/user.js')(userModel);
+
+//wire up users endpoint
 const userEndpoint = require('../endpoints/users.js')(userRepository);
 app.use(userEndpoint);
 
@@ -23,5 +25,12 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
+
+//passport configuration
+const passportFactory = require('./passport.js');
+const gitHubStrategy = require('../authentication/githubOAuth.js').gitHubStrategyFactory(userRepository);
+const passport = passportFactory(userRepository);
+passport.use(gitHubStrategy);
+
 
 module.exports = app;

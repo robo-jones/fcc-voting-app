@@ -94,18 +94,78 @@ describe('Users database interface', function() {
             return expect(UserInterfaceFactory(FakeModel).findUser('1234')).to.eventually.deep.equal(testUser);
         });
         
-        it('should return a rejected promise if the user does not exist', function() {
+        it('should reject the promise with \'user not found\' if the user does not exist', function() {
             const FakeModel = {
                 findOne: function(selector, callback) {
                     if (selector._id === '1234') {
                         callback(undefined, testUser);
                     } else {
-                        callback('test error', undefined);
+                        callback(undefined, undefined);
                     }
                 }
             };
             
-            return expect(UserInterfaceFactory(FakeModel).findUser('6969')).to.eventually.be.rejectedWith('test error');
+            return expect(UserInterfaceFactory(FakeModel).findUser('6969')).to.eventually.be.rejectedWith('user not found');
+        });
+    });
+    
+    describe('findUserByGithub()', () => {
+        const fakeGitHubProfile = {
+            id: '1234',
+            username: 'test_user',
+            displayName: 'testUser'
+        };
+        
+        const testUser = {
+            github: {
+                id: '1234',
+                username: 'test_user',
+                displayName: 'testUser'
+            }
+        };
+        
+        it('should search for a user with the provided gitHub profile', function() {
+            const findSpy = sinon.spy();
+            const FakeModel = {
+                findOne: findSpy
+            };
+            
+            UserInterfaceFactory(FakeModel).findUserByGithub(fakeGitHubProfile);
+            
+            expect(findSpy).to.have.been.calledWith({ 'github.id': fakeGitHubProfile.id });
+        });
+        
+        it('should return a promise that resolves to the user document, if the user exists', function() {
+            const FakeModel = {
+                findOne: function(selector, callback) {
+                    if (selector['github.id'] === '1234') {
+                        callback(undefined, testUser);
+                    } else {
+                        callback(undefined, undefined);
+                    }
+                }
+            };
+            
+            return expect(UserInterfaceFactory(FakeModel).findUserByGithub(fakeGitHubProfile)).to.eventually.deep.equal(testUser);
+        });
+        
+        it('should reject the promise with \'user not found\' if the user does not exist', function() {
+            const secondGitHubProfile = {
+                id: '6969',
+                username: 'test_user',
+                displayName: 'testUser'
+            };
+            const FakeModel = {
+                findOne: function(selector, callback) {
+                    if (selector['github.id'] === '1234') {
+                        callback(undefined, testUser);
+                    } else {
+                        callback(undefined, undefined);
+                    }
+                }
+            };
+            
+            return expect(UserInterfaceFactory(FakeModel).findUserByGithub(secondGitHubProfile)).to.eventually.be.rejectedWith('user not found');
         });
     });
 });
