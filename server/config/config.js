@@ -13,10 +13,21 @@ const mongodb = {
     dbUrl: `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB}`
 };
 
+const githubOauth = {
+    clientId: process.env.GITHUB_KEY,
+    clientSecret: process.env.GITHUB_SECRET
+};
+
+const session = {
+    secret: process.env.SESSION_SECRET
+};
+
 const nodeEnv = process.env.NODE_ENV;
 
 module.exports = {
     server,
-    mongodb, 
+    mongodb,
+    githubOauth,
+    session,
     nodeEnv
 };
