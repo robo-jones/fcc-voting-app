@@ -101,7 +101,7 @@ describe('Polls database interface', () => {
         });
     });
     
-    describe ('deletePoll()', () => {
+    describe('deletePoll()', () => {
         let FakePollModel;
         
         beforeEach(() => {
@@ -120,7 +120,7 @@ describe('Polls database interface', () => {
             const deleteSpy = sinon.spy(FakePollModel, 'findByIdAndRemove');
             
             pollInterfaceFactory(FakePollModel).deletePoll('1234');
-            expect(deleteSpy).to.have.been.calledWith('1234');
+            return expect(deleteSpy).to.have.been.calledWith('1234');
         });
         
         it('should return a promise that resolves to the deleted poll upon succedd', async () => {
@@ -131,6 +131,56 @@ describe('Polls database interface', () => {
         it('should return a rejected promise if the poll does not exist', () => {
             const result = pollInterfaceFactory(FakePollModel).deletePoll('6969');
             return expect(result).to.eventually.be.rejectedWith('poll not found');
+        });
+    });
+    
+    describe('findPollsByUser()', () => {
+        
+        it('should search for polls with the provided user id', () => {
+            const querySpy = sinon.spy();
+            const FakePollModel = {
+                find: querySpy
+            };
+            
+            pollInterfaceFactory(FakePollModel).findPollsByUser('1234');
+            return expect(querySpy).to.have.been.calledWith({ creator: '1234' });
+        });
+        
+        it('should return a promise that resolves to all the polls by the provided user id', async () => {
+            const testPolls = ['poll 1', 'poll 2'];
+            const FakePollModel = {
+                find: function(query, callback) {
+                    callback(undefined, testPolls);
+                }
+            };
+            
+            const results = await pollInterfaceFactory(FakePollModel).findPollsByUser('1234');
+            
+            expect(results).to.deep.equal(testPolls);
+        });
+        
+        it('should reject the promise with \'no polls found\' if there are no polls by the provided user id', () => {
+            const FakePollModel = {
+                find: function(query, callback) {
+                    callback(undefined, []);
+                }
+            };
+            
+            const results = pollInterfaceFactory(FakePollModel).findPollsByUser('1234');
+            
+            return expect(results).to.eventually.be.rejectedWith('no polls found');
+        });
+        
+        it('should return a rejected promise if an error occurs', () => {
+            const FakePollModel = {
+                find: function(query, callback) {
+                    callback('an error occured', undefined);
+                }
+            };
+            
+            const results = pollInterfaceFactory(FakePollModel).findPollsByUser('1234');
+            
+            return expect(results).to.eventually.be.rejected;
         });
     });
 });

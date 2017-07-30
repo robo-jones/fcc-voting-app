@@ -1,7 +1,7 @@
 'use strict';
 
 const pollInterfaceFactory = (PollModel) => {
-    const createPoll = async (pollDocument) => {
+    const createPoll = (pollDocument) => {
         const poll = new PollModel(pollDocument);
         return poll.save();
     };
@@ -34,10 +34,27 @@ const pollInterfaceFactory = (PollModel) => {
         });
     };
     
+    const findPollsByUser= (creatorId) => {
+        return new Promise((resolve, reject) => {
+            PollModel.find({ creator: creatorId }, (err, polls) => {
+                if(err) {
+                    reject(err);
+                } else {
+                    if (polls.length > 0) {
+                        resolve(polls);
+                    } else {
+                        reject('no polls found');
+                    }
+                }
+            });
+        });
+    };
+    
     return {
         createPoll,
         findPoll,
-        deletePoll
+        deletePoll,
+        findPollsByUser
     };
 };
 
