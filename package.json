@@ -5,8 +5,9 @@
   "main": "./server/server.js",
   "scripts": {
     "start": "node ./server/server.js",
-    "test": "mocha",
-    "dev": "NODE_ENV=development webpack-dev-server --config webpack.config.js --progress --watch --hot -d",
+    "test": "NODE_ENV=test mocha",
+    "dev": "NODE_ENV=development node ./server/server.js",
+    "clientDev": "NODE_ENV=development webpack-dev-server --config webpack.config.js --progress --watch --hot -d",
     "build": "NODE_ENV=development webpack",
     "buildProduction": "NODE_ENV=production webpack -p"
   },
