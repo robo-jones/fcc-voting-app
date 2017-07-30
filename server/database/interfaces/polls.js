@@ -11,8 +11,13 @@ const pollInterfaceFactory = (PollModel) => {
             PollModel.findById(id, (err, poll) => {
                 if (err) {
                     reject(err);
+                } else {
+                    if (poll) {
+                        resolve(poll);
+                    } else {
+                        reject('poll not found');
+                    }
                 }
-                resolve(poll);
             });
         });
         
