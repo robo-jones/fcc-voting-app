@@ -3,7 +3,7 @@
 const chai = require('chai');
 const sinon = require('sinon');
 
-const UserInterfaceFactory = require('../../../../../server/database/interfaces/user.js');
+const UserInterfaceFactory = require('../../../../server/repositories/user.js');
 
 const expect = chai.expect;
 

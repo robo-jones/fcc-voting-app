@@ -3,7 +3,7 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const ObjectID = require('mongodb').ObjectID;
-const pollInterfaceFactory = require('../../../../../server/database/interfaces/polls.js');
+const pollInterfaceFactory = require('../../../../server/repositories/polls.js');
 
 const expect = chai.expect;
 

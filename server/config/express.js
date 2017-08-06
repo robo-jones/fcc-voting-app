@@ -13,7 +13,7 @@ if (config.nodeEnv === 'development') {
 
 //wire up users repository
 const userModel = require('../database/schemas/user.js');
-const userRepository = require('../database/interfaces/user.js')(userModel);
+const userRepository = require('../repositories/user.js')(userModel);
 
 //wire up users endpoint
 const userEndpoint = require('../endpoints/users.js')(userRepository);
