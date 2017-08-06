@@ -44,8 +44,8 @@ const pollsEndpointFactory = (pollsRepository) => {
                 const result = await pollsRepository.findPoll(req.params.id);
                 res.json(result);
             } catch (error) {
-                if (error.message === 'poll not found') {
-                    res.json({ error: error.message });
+                if (error === 'poll not found') {
+                    res.json({ error });
                 } else {
                     res.sendStatus(500);
                 }
@@ -62,8 +62,8 @@ const pollsEndpointFactory = (pollsRepository) => {
                         res.json({ successfullyDeleted: result.id });
                     }
                 } catch (error) {
-                    if (error.message === 'poll not found') {
-                        res.json({ error: error.message });
+                    if (error === 'poll not found') {
+                        res.json({ error });
                     } else {
                         res.sendStatus(500);
                     }
@@ -72,6 +72,12 @@ const pollsEndpointFactory = (pollsRepository) => {
             } else {
                 res.sendStatus(401);
             }
+        });
+        
+    router.route('/polls/byuser/:id')
+        .get(async (req, res) => {
+            const polls = await pollsRepository.findPollsByUser(req.params.id);
+            res.json(polls);
         });
     
     return router;

@@ -240,7 +240,7 @@ describe('Polls endpoint', () => {
             
             it('should return a \'poll not found\' error if the poll does not exist', async () => {
                 const fakePollsRepository = {
-                    findPoll: () => (Promise.reject(new Error('poll not found')))
+                    findPoll: () => (Promise.reject('poll not found'))
                 };
                 const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
                 app.use(fakePollsEndpoint);
@@ -361,7 +361,7 @@ describe('Polls endpoint', () => {
             it('should return a \'poll not found\' error if the poll does not exist', async () => {
                 authenticated = true;
                 
-                sinon.stub(fakePollsRepository, 'findPoll').rejects(new Error('poll not found'));
+                fakePollsRepository.findPoll = () => (Promise.reject('poll not found'));
                 const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
                 app.use(fakePollsEndpoint);
                 
@@ -402,5 +402,36 @@ describe('Polls endpoint', () => {
         });
     });
     
-    
+    describe('/polls/byuser/:id', () => {
+        describe('GET', () => {
+            let app, fakePollsRepository;
+            const requestId = '12345';
+            const testPolls = ['somePoll', 'someOtherPoll'];
+            
+            beforeEach(() => {
+                app = express();
+                fakePollsRepository = {
+                    findPollsByUser: () => (Promise.resolve(testPolls))
+                };
+            });
+            
+            it('should search for polls with the provided user id', async () => {
+                const findSpy = sinon.spy(fakePollsRepository, 'findPollsByUser');
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                await chai.request(app).get(`/polls/byuser/${requestId}`);
+                
+                expect(findSpy).to.have.been.calledWith(requestId);
+            });
+            
+            it('should return the found polls', async () => {
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                const response = await chai.request(app).get(`/polls/byuser/${requestId}`);
+                expect(response.body).to.deep.equal(testPolls);
+            });
+        });
+    });
 });
