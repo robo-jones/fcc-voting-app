@@ -106,4 +106,96 @@ describe('Polls endpoint', () => {
             });
         });
     });
+    
+    describe('/polls', () => {
+        describe('POST', () => {
+            let app, authenticated;
+            const testUser = {
+                id: '12345'
+            };
+            const testPoll = {
+                title: 'someTitle',
+                options: ['1', '2']
+            };
+            
+            const fakeAuthMiddleware = (req, res, next) => {
+                req.isAuthenticated = () => {return authenticated;};
+                req.user = {
+                    id: testUser.id
+                };
+                next();
+            };
+            
+            beforeEach(() => {
+                authenticated = false;
+                app = express();
+                app.all('*', fakeAuthMiddleware);
+                app.get('/view/:id', (req, res) => { res.sendStatus(200) });
+            });
+            
+            it('should return a 403 if there is no logged in user', async () => {
+                const fakePollsRepository = {};
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                try {
+                    const response = await chai.request(app).post('/polls/mypolls').send(testPoll);
+                    expect(response).to.have.status(403);
+                } catch(response) {
+                    expect(response).to.have.status(403);
+                }
+            });
+            
+            it('should create a poll with the provided form data and the logged in user\'s id', async () => {
+                authenticated = true;
+                
+                const createPollSpy = sinon.spy();
+                const fakePollsRepository = {
+                    createPoll: (document) => {
+                        createPollSpy(document);
+                        return Promise.resolve({ id: '67890' });
+                    }
+                };
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                await chai.request(app).post('/polls/mypolls').send(testPoll);
+                expect(createPollSpy).to.have.been.calledWith({
+                    creator: testUser.id,
+                    title: testPoll.title,
+                    options: testPoll.options
+                });
+            });
+            
+            it('should redirect to the created poll\'s page upon success', async () => {
+                authenticated = true;
+                const fakePollsRepository = {
+                    createPoll: () => (Promise.resolve({ id: '67890' }))
+                };
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                const response = await chai.request(app).post('/polls/mypolls').send(testPoll);
+                expect(response).to.redirect;
+                expect(response.redirects[0].endsWith('/view/67890')).to.be.true;
+            });
+            
+            it('should respond with a 500 error if something goes wrong', async () => {
+                authenticated = true;
+                
+                const fakePollsRepository = {
+                    createPoll: () => (Promise.reject('error!'))
+                };
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                try {
+                    const response = await chai.request(app).post('/polls/mypolls').send(testPoll);
+                    expect(response).to.have.status(500);
+                } catch(response) {
+                    expect(response).to.have.status(500);
+                }
+            });
+        });
+    });
 });
