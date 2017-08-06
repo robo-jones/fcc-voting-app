@@ -10,7 +10,7 @@ const expect = chai.expect;
 chai.use(require('sinon-chai'));
 chai.use(require('chai-as-promised'));
 
-describe('Polls database interface', () => {
+describe('Polls repository', () => {
     const goodPollDocument = {
             title: 'poll title',
             creator: new ObjectID(),
@@ -99,7 +99,7 @@ describe('Polls database interface', () => {
             expect(result).to.deep.equal(goodPollDocument);
         });
         
-        it('should return a rejected promise if the poll does not exist', async () => {
+        it('should reject the promise with \'poll not found\' if the poll does not exist', async () => {
             const result = pollInterfaceFactory(FakePollModel).findPoll('6969');
             return expect(result).to.eventually.be.rejectedWith('poll not found');
         });
@@ -132,7 +132,7 @@ describe('Polls database interface', () => {
             expect(result).to.deep.equal(goodPollDocument);
         });
         
-        it('should return a rejected promise if the poll does not exist', () => {
+        it('should reject the promise with \'poll not found\' if the poll does not exist', () => {
             const result = pollInterfaceFactory(FakePollModel).deletePoll('6969');
             return expect(result).to.eventually.be.rejectedWith('poll not found');
         });

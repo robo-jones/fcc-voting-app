@@ -10,7 +10,7 @@ const expect = chai.expect;
 chai.use(require('sinon-chai'));
 chai.use(require('chai-as-promised'));
 
-describe('Users database interface', function() {
+describe('Users repository', function() {
     describe('createUser()', function() {
         const testUser = { userName: 'foo' };
         
