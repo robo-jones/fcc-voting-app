@@ -28,6 +28,9 @@ const pollSchema = new Schema({
             }
         }],
         required: true
+    },
+    alreadyVoted: {
+        type: [String]
     }
 });
 

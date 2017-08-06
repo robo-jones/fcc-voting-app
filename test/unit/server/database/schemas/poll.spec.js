@@ -21,7 +21,8 @@ describe('Poll database schema', function() {
                 name: 'option 2',
                 votes: 2
             }
-        ]
+        ],
+        alreadyVoted: ['192.168.0.1'],
     };
     
     describe('Validation', function() {
@@ -133,6 +134,15 @@ describe('Poll database schema', function() {
         it('should prevent saving if an option\'s votes are not an integer value', function() {
             const badPoll = JSON.parse(JSON.stringify(properPoll));
             badPoll.options[0].votes = 6.9;
+            
+            const poll = new Poll(badPoll);
+            
+            return expect(poll.validate()).to.eventually.be.rejected;
+        });
+        
+        it('should prevent saving if an alreadyVoted is not a string or castable to a string', function() {
+            const badPoll = JSON.parse(JSON.stringify(properPoll));
+            badPoll.alreadyVoted[0] = { foo: 'This is something that mongoose cant re-cast to a string' };
             
             const poll = new Poll(badPoll);
             
