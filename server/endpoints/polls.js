@@ -14,7 +14,7 @@ const pollsEndpointFactory = (pollsRepository) => {
                     polls: polls
                 });
             } else {
-                res.sendStatus(403);
+                res.sendStatus(401);
             }
         });
     
@@ -34,7 +34,7 @@ const pollsEndpointFactory = (pollsRepository) => {
                 }
                 
             } else {
-                res.sendStatus(403);
+                res.sendStatus(401);
             }
         });
     
@@ -44,13 +44,34 @@ const pollsEndpointFactory = (pollsRepository) => {
                 const result = await pollsRepository.findPoll(req.params.id);
                 res.json(result);
             } catch (error) {
-                if (error === 'poll not found') {
-                    res.json({ error });
+                if (error.message === 'poll not found') {
+                    res.json({ error: error.message });
                 } else {
                     res.sendStatus(500);
                 }
             }
-            
+        })
+        .delete(async (req, res) => {
+            if (req.isAuthenticated()) {
+                try {
+                    const poll = await pollsRepository.findPoll(req.params.id);
+                    if (poll.creator !== req.user.id) {
+                        res.sendStatus(403);
+                    } else {
+                        const result = await pollsRepository.deletePoll(req.params.id);
+                        res.json({ successfullyDeleted: result.id });
+                    }
+                } catch (error) {
+                    if (error.message === 'poll not found') {
+                        res.json({ error: error.message });
+                    } else {
+                        res.sendStatus(500);
+                    }
+                }
+                
+            } else {
+                res.sendStatus(401);
+            }
         });
     
     return router;
