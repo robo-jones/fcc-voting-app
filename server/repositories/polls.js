@@ -6,7 +6,8 @@ const pollInterfaceFactory = (PollModel) => {
         const formattedDocument = {
             creator: pollDocument.creator,
             title: pollDocument.title,
-            options: pollDocument.options.map((option) => ({ name: option, votes: 0 }))
+            options: pollDocument.options.map((option) => ({ name: option, votes: 0 })),
+            alreadyVoted: []
         };
         const poll = new PollModel(formattedDocument);
         return poll.save();
@@ -40,7 +41,7 @@ const pollInterfaceFactory = (PollModel) => {
         });
     };
     
-    const findPollsByUser= (creatorId) => {
+    const findPollsByUser = (creatorId) => {
         return new Promise((resolve, reject) => {
             PollModel.find({ creator: creatorId }, (err, polls) => {
                 if(err) {
@@ -52,11 +53,37 @@ const pollInterfaceFactory = (PollModel) => {
         });
     };
     
+    const vote = (id, option, voter) => {
+        return new Promise((resolve, reject) => {
+            PollModel.findById(id, (err, poll) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    if (poll) {
+                        if (poll.alreadyVoted.indexOf(voter) !== -1) {
+                            reject('user has already voted');
+                        } else {
+                            poll.options[option].votes += 1;
+                            poll.alreadyVoted.push(voter);
+                            poll.save();
+                            resolve(poll.options[option].name);
+                        }
+                    } else {
+                        reject('poll not found');
+                    }
+                    
+                }
+            });
+        });
+        
+    };
+    
     return {
         createPoll,
         findPoll,
         deletePoll,
-        findPollsByUser
+        findPollsByUser,
+        vote
     };
 };
 

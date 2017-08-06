@@ -12,19 +12,20 @@ chai.use(require('chai-as-promised'));
 
 describe('Polls repository', () => {
     const goodPollDocument = {
-            title: 'poll title',
-            creator: new ObjectID(),
-            options: [
-                {
-                    name: 'option 1',
-                    votes: 0
-                },
-                {
-                    name: 'option 2',
-                    votes: 0
-                }
-            ]
-        };
+        title: 'poll title',
+        creator: new ObjectID(),
+        options: [
+            {
+                name: 'option 1',
+                votes: 0
+            },
+            {
+                name: 'option 2',
+                votes: 0
+            }
+        ],
+        alreadyVoted: []
+    };
         
     describe('createPoll()', () => {
        let FakePollModel;
@@ -173,6 +174,74 @@ describe('Polls repository', () => {
             const results = pollInterfaceFactory(FakePollModel).findPollsByUser('1234');
             
             return expect(results).to.eventually.be.rejected;
+        });
+    });
+    
+    describe('vote()', () => {
+        const pollId = '12345';
+        const voterId = '12345';
+        const option = 1;
+        let FakePollModel;
+        
+        beforeEach(() => {
+            FakePollModel = {
+                findById: (id, callback) => {
+                    const fakeDocument = JSON.parse(JSON.stringify(goodPollDocument));
+                    fakeDocument.save = () => {};
+                    callback(undefined, fakeDocument);
+                }
+            };
+        });
+        
+        
+        it('should search for the provided poll id', () => {
+            const findSpy = sinon.spy(FakePollModel, 'findById');
+            
+            pollInterfaceFactory(FakePollModel).vote(pollId, option);
+            expect(findSpy).to.have.been.calledWith(pollId);
+        });
+        
+        it('should increment the vote count of the provided option, add the voter to alreadyVoted, and update the poll in the database', async () => {
+            const fakeDocument = JSON.parse(JSON.stringify(goodPollDocument));
+            fakeDocument.save = () => {};
+            FakePollModel = {
+                findById: (id, callback) => {
+                    callback(undefined, fakeDocument);
+                }
+            };
+            const saveSpy = sinon.spy(fakeDocument, 'save');
+            
+            await pollInterfaceFactory(FakePollModel).vote(pollId, option, voterId);
+            expect(fakeDocument.options[option].votes).to.equal(goodPollDocument.options[option].votes + 1);
+            expect(fakeDocument.alreadyVoted.indexOf(voterId)).to.not.equal(-1);
+            expect(saveSpy).to.have.been.called;
+        });
+        
+        it('should return a promise with the name of the voted for option', () => {
+            const results = pollInterfaceFactory(FakePollModel).vote(pollId, option);
+            
+            return expect(results).to.eventually.equal(goodPollDocument.options[option].name);
+        });
+        
+        it('should reject the promise with \'poll not found\' if the poll does not exist', () => {
+            sinon.stub(FakePollModel, 'findById').callsFake((id, callback) => { callback(undefined, undefined) });
+            const results = pollInterfaceFactory(FakePollModel).vote(pollId, option);
+            
+            return expect(results).to.eventually.be.rejectedWith('poll not found');
+        });
+        
+        it('should reject the promise with \'user has already voted\' if the voter has already voted on this poll', () => {
+            const fakeDocument = JSON.parse(JSON.stringify(goodPollDocument));
+            fakeDocument.save = () => {};
+            fakeDocument.alreadyVoted.push(voterId);
+            FakePollModel = {
+                findById: (id, callback) => {
+                    callback(undefined, fakeDocument);
+                }
+            };
+            const results = pollInterfaceFactory(FakePollModel).vote(pollId, option, voterId);
+            
+            return expect(results).to.eventually.be.rejectedWith('user has already voted');
         });
     });
 });
