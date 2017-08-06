@@ -16,7 +16,9 @@ const pollsEndpointFactory = (pollsRepository) => {
             } else {
                 res.sendStatus(403);
             }
-        })
+        });
+    
+    router.route('/polls')
         .post(bodyParser.json(), async (req, res) => {
             if(req.isAuthenticated()) {
                 try {
@@ -34,6 +36,21 @@ const pollsEndpointFactory = (pollsRepository) => {
             } else {
                 res.sendStatus(403);
             }
+        });
+    
+    router.route('/polls/:id')
+        .get(async (req, res) => {
+            try {
+                const result = await pollsRepository.findPoll(req.params.id);
+                res.json(result);
+            } catch (error) {
+                if (error === 'poll not found') {
+                    res.json({ error });
+                } else {
+                    res.sendStatus(500);
+                }
+            }
+            
         });
     
     return router;

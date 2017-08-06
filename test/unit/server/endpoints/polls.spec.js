@@ -139,7 +139,7 @@ describe('Polls endpoint', () => {
                 app.use(fakePollsEndpoint);
                 
                 try {
-                    const response = await chai.request(app).post('/polls/mypolls').send(testPoll);
+                    const response = await chai.request(app).post('/polls').send(testPoll);
                     expect(response).to.have.status(403);
                 } catch(response) {
                     expect(response).to.have.status(403);
@@ -159,7 +159,7 @@ describe('Polls endpoint', () => {
                 const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
                 app.use(fakePollsEndpoint);
                 
-                await chai.request(app).post('/polls/mypolls').send(testPoll);
+                await chai.request(app).post('/polls').send(testPoll);
                 expect(createPollSpy).to.have.been.calledWith({
                     creator: testUser.id,
                     title: testPoll.title,
@@ -175,7 +175,7 @@ describe('Polls endpoint', () => {
                 const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
                 app.use(fakePollsEndpoint);
                 
-                const response = await chai.request(app).post('/polls/mypolls').send(testPoll);
+                const response = await chai.request(app).post('/polls').send(testPoll);
                 expect(response).to.redirect;
                 expect(response.redirects[0].endsWith('/view/67890')).to.be.true;
             });
@@ -190,7 +190,7 @@ describe('Polls endpoint', () => {
                 app.use(fakePollsEndpoint);
                 
                 try {
-                    const response = await chai.request(app).post('/polls/mypolls').send(testPoll);
+                    const response = await chai.request(app).post('/polls').send(testPoll);
                     expect(response).to.have.status(500);
                 } catch(response) {
                     expect(response).to.have.status(500);
@@ -198,4 +198,96 @@ describe('Polls endpoint', () => {
             });
         });
     });
+    
+    describe('/polls/:id', () => {
+        describe('GET', () => {
+            let app;
+            const requestId = '12345';
+            const testPoll = {
+                id: '12345',
+                creator: '67890',
+                options: 'some options'
+            };
+            
+            beforeEach(() => {
+                app = express();
+            });
+            
+            it('should search for a poll with the provided id', async () => {
+                const fakePollsRepository = {
+                    findPoll: () => {}
+                };
+                const findSpy = sinon.spy(fakePollsRepository, 'findPoll');
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                await chai.request(app).get(`/polls/${requestId}`);
+                
+                expect(findSpy).to.have.been.calledWith(requestId);
+            });
+            
+            it('should return the poll document, if it was found', async () => {
+                const fakePollsRepository = {
+                    findPoll: () => (Promise.resolve(testPoll))
+                };
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                const response = await chai.request(app).get(`/polls/${requestId}`);
+                
+                expect(response.body).to.deep.equal(testPoll);
+            });
+            
+            it('should return a \'poll not found\' error if the poll does not exist', async () => {
+                const fakePollsRepository = {
+                    findPoll: () => (Promise.reject('poll not found'))
+                };
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                const response = await chai.request(app).get(`/polls/${requestId}`);
+                
+                expect(response.body.error).to.equal('poll not found');
+            });
+            
+            it('should return a 500 error if any other error occurs', async () => {
+                const fakePollsRepository = {
+                    findPoll: () => (Promise.reject(new Error('oh no!')))
+                };
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                try {
+                    const response = await chai.request(app).get(`/polls/${requestId}`);
+                    expect(response).to.have.status(500);
+                } catch(response) {
+                    expect(response).to.have.status(500);
+                }
+            });
+        });
+    });
+    
+    /*describe('/polls/byuser/:id', () => {
+        describe('GET', () => {
+            let app;
+            const requestId = '12345';
+            
+            beforeEach(() => {
+                app = express();
+            });
+            
+            it('should search for polls with the provided user id', async () => {
+                const fakePollsRepository = {
+                    findPollsByUser: () => {}
+                };
+                const findSpy = sinon.spy(fakePollsRepository.findPoll);
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                await chai.request(app).get(`/polls/${requestId}`);
+                
+                expect(findSpy).to.have.been.calledWith(requestId);
+            });
+        });
+    });*/
 });
