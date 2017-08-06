@@ -46,11 +46,7 @@ const pollInterfaceFactory = (PollModel) => {
                 if(err) {
                     reject(err);
                 } else {
-                    if (polls.length > 0) {
-                        resolve(polls);
-                    } else {
-                        reject('no polls found');
-                    }
+                    resolve(polls);
                 }
             });
         });

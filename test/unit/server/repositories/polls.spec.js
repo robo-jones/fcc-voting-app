@@ -163,18 +163,6 @@ describe('Polls repository', () => {
             expect(results).to.deep.equal(testPolls);
         });
         
-        it('should reject the promise with \'no polls found\' if there are no polls by the provided user id', () => {
-            const FakePollModel = {
-                find: function(query, callback) {
-                    callback(undefined, []);
-                }
-            };
-            
-            const results = pollInterfaceFactory(FakePollModel).findPollsByUser('1234');
-            
-            return expect(results).to.eventually.be.rejectedWith('no polls found');
-        });
-        
         it('should return a rejected promise if an error occurs', () => {
             const FakePollModel = {
                 find: function(query, callback) {
