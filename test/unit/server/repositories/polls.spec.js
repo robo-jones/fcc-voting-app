@@ -12,23 +12,27 @@ chai.use(require('chai-as-promised'));
 
 describe('Polls database interface', () => {
     const goodPollDocument = {
-            _id: new ObjectID(),
             title: 'poll title',
             creator: new ObjectID(),
             options: [
                 {
                     name: 'option 1',
-                    votes: 1
+                    votes: 0
                 },
                 {
                     name: 'option 2',
-                    votes: 2
+                    votes: 0
                 }
             ]
         };
         
     describe('createPoll()', () => {
        let FakePollModel;
+       const inputPollDocument = {
+           creator: goodPollDocument.creator,
+           title: goodPollDocument.title,
+           options: [goodPollDocument.options[0].name, goodPollDocument.options[1].name]
+       };
         
         beforeEach(() => {
             FakePollModel = function(pollDocument) {
@@ -40,30 +44,30 @@ describe('Polls database interface', () => {
             };
         });
         
-        it('should create a new poll model object with the provided data', () => {
+        it('should format the input document and create a new poll model object with the formatted data', () => {
             const constructorSpy = sinon.spy(FakePollModel);
             
-            pollInterfaceFactory(constructorSpy).createPoll(goodPollDocument);
+            pollInterfaceFactory(constructorSpy).createPoll(inputPollDocument);
             expect(constructorSpy).to.have.been.calledWith(goodPollDocument);
         });
         
         it('should save the new poll to the database', () => {
             const saveSpy = sinon.spy(FakePollModel.prototype, 'save');
             
-            pollInterfaceFactory(FakePollModel).createPoll(goodPollDocument);
+            pollInterfaceFactory(FakePollModel).createPoll(inputPollDocument);
             expect(saveSpy).to.have.been.called;
         });
         
         it('should return a promise that resolves to the saved document', async () => {
-            const result = await pollInterfaceFactory(FakePollModel).createPoll(goodPollDocument);
-            expect(result).to.equal(goodPollDocument);
+            const result = await pollInterfaceFactory(FakePollModel).createPoll(inputPollDocument);
+            expect(result).to.deep.equal(goodPollDocument);
         });
         
         it('should return a rejected promise if it encounters an error', () => {
             const saveStub = sinon.stub(FakePollModel.prototype, 'save');
             saveStub.rejects('an error occurred');
             
-            const result = pollInterfaceFactory(FakePollModel).createPoll(goodPollDocument);
+            const result = pollInterfaceFactory(FakePollModel).createPoll(inputPollDocument);
             return expect(result).to.eventually.be.rejected;
         });
     });
@@ -92,7 +96,7 @@ describe('Polls database interface', () => {
         
         it('should return a promise that resolves to the poll document, if it exists', async () => {
             const result = await pollInterfaceFactory(FakePollModel).findPoll('1234');
-            expect(result).to.equal(goodPollDocument);
+            expect(result).to.deep.equal(goodPollDocument);
         });
         
         it('should return a rejected promise if the poll does not exist', async () => {
@@ -125,7 +129,7 @@ describe('Polls database interface', () => {
         
         it('should return a promise that resolves to the deleted poll upon succedd', async () => {
             const result = await pollInterfaceFactory(FakePollModel).deletePoll('1234');
-            expect(result).to.equal(goodPollDocument);
+            expect(result).to.deep.equal(goodPollDocument);
         });
         
         it('should return a rejected promise if the poll does not exist', () => {

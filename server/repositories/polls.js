@@ -1,8 +1,14 @@
 'use strict';
 
 const pollInterfaceFactory = (PollModel) => {
+    
     const createPoll = (pollDocument) => {
-        const poll = new PollModel(pollDocument);
+        const formattedDocument = {
+            creator: pollDocument.creator,
+            title: pollDocument.title,
+            options: pollDocument.options.map((option) => ({ name: option, votes: 0 }))
+        };
+        const poll = new PollModel(formattedDocument);
         return poll.save();
     };
     
