@@ -106,6 +106,37 @@ describe('Polls repository', () => {
         });
     });
     
+    describe('findAllPolls()', () => {
+        const testPolls = ['1', '2'];
+        it('should query the database for all polls', () => {
+            const FakePollModel = {
+                find: (query) => {}
+            };
+            const findSpy = sinon.spy(FakePollModel, 'find');
+            
+            pollInterfaceFactory(FakePollModel).findAllPolls();
+            expect(findSpy).to.have.been.calledWith({});
+        });
+        
+        it('should return a promise that resolves to the poll objects', () => {
+            const FakePollModel = {
+                find: (query, callback) => { callback(undefined, testPolls) }
+            };
+            
+            const results = pollInterfaceFactory(FakePollModel).findAllPolls();
+            return expect(results).to.eventually.deep.equal(testPolls);
+        });
+        
+        it('should reject the promise if an error occurs', () => {
+            const FakePollModel = {
+                find: (query, callback) => { callback(new Error(), undefined) }
+            };
+            
+            const results = pollInterfaceFactory(FakePollModel).findAllPolls();
+            return expect(results).to.eventually.be.rejected;
+        });
+    });
+    
     describe('deletePoll()', () => {
         let FakePollModel;
         

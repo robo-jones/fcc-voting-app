@@ -27,7 +27,17 @@ const pollInterfaceFactory = (PollModel) => {
                 }
             });
         });
-        
+    };
+    
+    const findAllPolls = () => {
+        return new Promise((resolve, reject) => {
+            PollModel.find({}, (err, polls) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve(polls);
+            });
+        });
     };
     
     const deletePoll = (id) => {
@@ -81,6 +91,7 @@ const pollInterfaceFactory = (PollModel) => {
     return {
         createPoll,
         findPoll,
+        findAllPolls,
         deletePoll,
         findPollsByUser,
         vote
