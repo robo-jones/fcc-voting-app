@@ -100,6 +100,26 @@ const pollsEndpointFactory = (pollsRepository) => {
             }
         });
     
+    router.route('/polls/:id/options')
+        .post(bodyParser.json(), async (req, res) => {
+            if (req.isAuthenticated()) {
+                try {
+                    const updatedPoll = await pollsRepository.addOption(req.params.id, req.body.option, req.user.id);
+                    res.json(updatedPoll);
+                } catch (error) {
+                    if (error === 'poll not found') {
+                        res.json( { error });
+                    } else if (error === 'not authorized') {
+                        res.sendStatus(403);
+                    } else {
+                        res.sendStatus(500);
+                    }
+                }
+            } else {
+                res.sendStatus(401);
+            }
+        });
+    
     return router;
 };
 

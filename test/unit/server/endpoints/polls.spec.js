@@ -522,4 +522,117 @@ describe('Polls endpoint', () => {
             });
         });
     });
+    
+    describe('/polls/:id/options', () => {
+        describe('POST', () => {
+            let app, fakePollsRepository, authenticated;
+            const newOption = 'kittens!';
+            const fakeAuthMiddleware = (req, res, next) => {
+                req.isAuthenticated = () => {return authenticated;};
+                req.user = {
+                    id: testUser.id
+                };
+                next();
+            };
+            const testUser = { id: '67890' };
+            const fakePoll = {
+                id: '12345',
+                creator: testUser.id,
+                options:[{
+                    name: 'option 1',
+                    votes: 0
+                }]
+            };
+            
+            beforeEach(() => {
+                authenticated = false;
+                fakePollsRepository = {
+                    addOption: (id, option, userId) => {
+                        if(id !== fakePoll.id) { return Promise.reject('poll not found'); }
+                        if (userId !== fakePoll.creator) { return Promise.reject('not authorized'); }
+                        const returnDocument = JSON.parse(JSON.stringify(fakePoll));
+                        returnDocument.options.push({ name: option, votes: 0 });
+                        return Promise.resolve(returnDocument);
+                    }
+                };
+                app = express();
+                app.all('*', fakeAuthMiddleware);
+            });
+            
+            it('should return a 401 error if there is no user logged in', async () => {
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                try {
+                    const response = await chai.request(app).post(`/polls/${fakePoll.id}/options`).send({ option: newOption });
+                    expect(response).to.have.status(401);
+                } catch(response) {
+                    expect(response).to.have.status(401);
+                }
+            });
+            
+            it('should attempt to add the provided option to the requested poll', async () => {
+                authenticated = true;
+                const addOptionSpy = sinon.spy(fakePollsRepository, 'addOption');
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                await chai.request(app).post(`/polls/${fakePoll.id}/options`).send({ option: newOption });
+                expect(addOptionSpy).to.have.been.calledWith(fakePoll.id, newOption);
+            });
+            
+            it('should return a 403 error if a user tries to add an option to a poll that is not theirs', async () => {
+                authenticated = true;
+                const changeableUserMiddleware = (req, res, next) => {
+                    req.user.id = '54321';
+                    next();
+                };
+                app.all('*', changeableUserMiddleware); //since this middleware is mounted here, it will overwrite the default req.user.id in the beforeEach() block
+                
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                try {
+                    const response = await chai.request(app).post(`/polls/${fakePoll.id}/options`).send({ option: newOption });
+                    expect(response).to.have.status(403);
+                } catch(response) {
+                    expect(response).to.have.status(403);
+                }
+            });
+            
+            it('should return a \'poll not found\' error if the poll cannot be found', async () => {
+                authenticated = true;
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                const response = await chai.request(app).post(`/polls/54321/options`).send({ option: newOption });
+                expect(response.body.error).to.equal('poll not found');
+            });
+            
+            it('should return the updated poll object, if the update was successful', async () => {
+                const expectedDocument = JSON.parse(JSON.stringify(fakePoll));
+                expectedDocument.options.push({ name: newOption, votes: 0 });
+                authenticated = true;
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                const response = await chai.request(app).post(`/polls/${fakePoll.id}/options`).send({ option: newOption });
+                expect(response.body).to.deep.equal(expectedDocument);
+            });
+            
+            it('should return a 500 error if another problem occurs', async () => {
+                authenticated = true;
+                sinon.stub(fakePollsRepository, 'addOption').rejects();
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                try {
+                    const response = await chai.request(app).post(`/polls/${fakePoll.id}/options`).send({ option: newOption });
+                    expect(response).to.have.status(500);
+                } catch (response) {
+                    expect(response).to.have.status(500);
+                }
+            });
+        });
+    });
 });
