@@ -434,4 +434,92 @@ describe('Polls endpoint', () => {
             });
         });
     });
+    
+    describe('/polls/:id/vote', () => {
+        describe('POST', () => {
+            //All requests are set up with an 'X-Forwarded-For' header, since this app is designed to be deployed behind a proxy
+            let app, fakePollsRepository, authenticated;
+            const requestIP = '1.2.3.4';
+            const requestId = '12345';
+            const requestOption = 0;
+            const fakeAuthMiddleware = (req, res, next) => {
+                req.isAuthenticated = () => {return authenticated;};
+                req.user = {
+                    id: testUser.id
+                };
+                next();
+            };
+            const testUser = { id: '67890' };
+            
+            beforeEach(() => {
+                authenticated = false;
+                fakePollsRepository = {
+                    vote: () => {}
+                };
+                app = express();
+                app.all('*', fakeAuthMiddleware);
+            });
+            
+            it('should attempt to vote for the provided option on the specified poll', async () => {
+                const voteSpy = sinon.spy(fakePollsRepository, 'vote');
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                await chai.request(app).post(`/polls/${requestId}/vote`).set('X-Forwarded-For', requestIP).send({ option: requestOption });
+                expect(voteSpy).to.have.been.calledWith(requestId, requestOption);
+            });
+            
+            it('should attempt to vote with the request\'s IP if there is no logged in user', async () => {
+                const voteSpy = sinon.spy(fakePollsRepository, 'vote');
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                await chai.request(app).post(`/polls/${requestId}/vote`).set('X-Forwarded-For', requestIP).send({ option: requestOption });
+                expect(voteSpy).to.have.been.calledWith(requestId, requestOption, requestIP);
+            });
+            
+            it('should attempt to vote with a logged in user\'s id', async()=> {
+                authenticated = true;
+                const voteSpy = sinon.spy(fakePollsRepository, 'vote');
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                await chai.request(app).post(`/polls/${requestId}/vote`).set('X-Forwarded-For', requestIP).send({ option: requestOption });
+                expect(voteSpy).to.have.been.calledWith(requestId, requestOption, testUser.id);
+            });
+            
+            it('should return a \'poll not found\' error if the poll does not exist', async () => {
+                fakePollsRepository.vote = () => (Promise.reject('poll not found'));
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                const response = await chai.request(app).post(`/polls/${requestId}/vote`).set('X-Forwarded-For', requestIP).send({ option: requestOption });
+                
+                expect(response.body.error).to.equal('poll not found');
+            });
+            
+            it('should return a \'user has already voted\' error if the requesting user/IP has already voted on the poll', async () => {
+                fakePollsRepository.vote = () => (Promise.reject('user has already voted'));
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                const response = await chai.request(app).post(`/polls/${requestId}/vote`).set('X-Forwarded-For', requestIP).send({ option: requestOption });
+                
+                expect(response.body.error).to.equal('user has already voted');
+            });
+            
+            it('should return a 500 error if any other error occurs', async () => {
+                fakePollsRepository.vote = sinon.stub.rejects();
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                try {
+                    const response = await chai.request(app).post(`/polls/${requestId}/vote`).set('X-Forwarded-For', requestIP).send({ option: requestOption });
+                    expect(response).to.have.status(500);
+                } catch (response) {
+                    expect(response).to.have.status(500);
+                }
+            });
+        });
+    });
 });

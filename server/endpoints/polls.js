@@ -80,6 +80,26 @@ const pollsEndpointFactory = (pollsRepository) => {
             res.json(polls);
         });
     
+    router.route('/polls/:id/vote')
+        .post(bodyParser.json(), async (req, res) => {
+            let voter;
+            if (req.isAuthenticated()) {
+                voter = req.user.id;
+            } else {
+                voter = req.get('X-Forwarded-For').split(',')[0];
+            }
+            try {
+                await pollsRepository.vote(req.params.id, req.body.option, voter);
+                res.sendStatus(200);
+            } catch (error) {
+                if (error === 'poll not found' || error === 'user has already voted') {
+                    res.json({ error });
+                } else {
+                    res.sendStatus(500);
+                }
+            }
+        });
+    
     return router;
 };
 
