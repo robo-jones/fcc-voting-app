@@ -70,43 +70,4 @@ describe('Users endpoint', () => {
             });
         });
     });
-    
-    describe('/users', () => {
-        describe('POST', () => {
-            let app, fakeUserRepo, usersEndpoint, userId;
-            beforeEach(() => {
-                userId = '12345';
-                app = express();
-                fakeUserRepo = {
-                    createUser: (userDocument) => {
-                        return Promise.resolve({
-                            _id: userId,
-                            userName: userDocument.userName
-                        });
-                    }
-                };
-                usersEndpoint = usersEndpointFactory(fakeUserRepo);
-                
-                app.use(usersEndpoint);
-                //mock the '/mypolls' endpoint to prevent 404s on the redirect
-                app.get('/mypolls', (req, res) => {
-                    res.send('Hi there!');
-                });
-            });
-            
-            it('should call the createUser function with the supplied user info', async () => {
-                const createUserSpy = sinon.spy(fakeUserRepo, 'createUser');
-                
-                await chai.request(app).post('/users').send({ username: 'foo' });
-                return expect(createUserSpy).to.have.been.calledWith({ userName: 'foo' });
-            });
-            
-            it('should redirect the user to their polls page on success', async () => {
-                const response = await chai.request(app).post('/users').send({ username: 'foo' });
-                
-                expect(response).to.redirect;
-                expect(response.redirects[0].endsWith('/mypolls')).to.be.true;
-            });
-        });
-    });
 });

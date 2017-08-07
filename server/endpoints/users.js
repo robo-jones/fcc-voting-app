@@ -1,7 +1,5 @@
 'use strict';
 
-const bodyParser = require('body-parser');
-
 const usersEndpointFactory = (userRepository) => {
     const router = require('express').Router();
     
@@ -18,16 +16,6 @@ const usersEndpointFactory = (userRepository) => {
                 }
             } 
         });
-    
-    router.route('/users')
-        .post(bodyParser.json(),
-            async (req, res) => {
-                const userDocument = {
-                    userName: req.body.username
-                };
-                await userRepository.createUser(userDocument);
-                res.redirect('/mypolls');
-            });
     
     return router;
 };
