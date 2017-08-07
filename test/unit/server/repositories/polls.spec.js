@@ -304,7 +304,7 @@ describe('Polls repository', () => {
             };
             const saveSpy = sinon.spy(fakeDocument, 'save');
             
-            await pollInterfaceFactory(FakePollModel).addOption(fakeDocument.id, testOption.name);
+            await pollInterfaceFactory(FakePollModel).addOption(fakeDocument.id, testOption.name, fakeDocument.creator);
             expect(fakeDocument.options[fakeDocument.options.length - 1]).to.deep.equal(testOption);
             expect(saveSpy).to.have.been.called;
         });
@@ -323,7 +323,7 @@ describe('Polls repository', () => {
                 }
             };
             
-            const result = pollInterfaceFactory(FakePollModel).addOption(fakeDocument.id, testOption.name);
+            const result = pollInterfaceFactory(FakePollModel).addOption(fakeDocument.id, testOption.name, fakeDocument.creator);
             return expect(result).to.eventually.equal(fakeDocument);
         });
         
@@ -375,6 +375,24 @@ describe('Polls repository', () => {
             
             const result = pollInterfaceFactory(FakePollModel).addOption('12345', testOption.name);
             return expect(result).to.eventually.be.rejectedWith(testError);
+        });
+        
+        it('should reject the promise with \'not authorized\' if the provided creator is not the poll\'s creator', () => {
+            const testOption = {
+                name: 'testOption',
+                votes: 0
+            };
+            const fakeDocument = JSON.parse(JSON.stringify(goodPollDocument));
+            fakeDocument.id = '12345';
+            fakeDocument.save = () => {};
+            const FakePollModel = {
+                findById: (id, callback) => {
+                    callback(undefined, fakeDocument);
+                }
+            };
+            
+            const result = pollInterfaceFactory(FakePollModel).addOption('12345', testOption.name, 'a different creator');
+            return expect(result).to.eventually.be.rejectedWith('not authorized');
         });
     });
 });

@@ -87,11 +87,12 @@ const pollInterfaceFactory = (PollModel) => {
         });
     };
     
-    const addOption = (id, option) => {
+    const addOption = (id, option, requestingUserId) => {
         return new Promise((resolve, reject) => {
             PollModel.findById(id, async (err, poll) => {
                 if (err) { reject(err); }
                 if (poll) {
+                    if(poll.creator !== requestingUserId) { reject('not authorized'); }
                     const newOption = {
                         name: option,
                         votes: 0
