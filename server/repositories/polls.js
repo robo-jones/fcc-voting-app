@@ -85,7 +85,30 @@ const pollInterfaceFactory = (PollModel) => {
                 }
             });
         });
-        
+    };
+    
+    const addOption = (id, option) => {
+        return new Promise((resolve, reject) => {
+            PollModel.findById(id, async (err, poll) => {
+                if (err) { reject(err); }
+                if (poll) {
+                    const newOption = {
+                        name: option,
+                        votes: 0
+                    };
+                    poll.options.push(newOption);
+                    try {
+                        await poll.save();
+                        resolve(poll);
+                    } catch (error) {
+                        reject(error);
+                    }
+                } else {
+                    reject('poll not found');
+                }
+                
+            });
+        });
     };
     
     return {
@@ -94,7 +117,8 @@ const pollInterfaceFactory = (PollModel) => {
         findAllPolls,
         deletePoll,
         findPollsByUser,
-        vote
+        vote,
+        addOption
     };
 };
 

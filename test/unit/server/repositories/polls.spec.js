@@ -277,14 +277,104 @@ describe('Polls repository', () => {
     });
     
     describe('addOption()', () => {
-        it('should search for the provided poll using findPoll()', () => {
+        it('should search for the provided poll', () => {
             const testId = '12345';
-            const fakePollModel = {};
-            const pollRepo = pollInterfaceFactory(fakePollModel);
-            const findPollSpy = sinon.spy(pollRepo, 'findPoll');
+            const FakePollModel = {
+                findById: () => {}
+            };
+            const pollRepo = pollInterfaceFactory(FakePollModel);
+            const findPollSpy = sinon.spy(FakePollModel, 'findById');
             
             pollRepo.addOption(testId);
             expect(findPollSpy).to.have.been.calledWith(testId);
+        });
+        
+        it('should create a new, correctly formatted option, add it to the poll, and update it in the database', async () => {
+            const testOption = {
+                name: 'testOption',
+                votes: 0
+            };
+            const fakeDocument = JSON.parse(JSON.stringify(goodPollDocument));
+            fakeDocument.id = '12345';
+            fakeDocument.save = () => {};
+            const FakePollModel = {
+                findById: (id, callback) => {
+                    callback(undefined, fakeDocument);
+                }
+            };
+            const saveSpy = sinon.spy(fakeDocument, 'save');
+            
+            await pollInterfaceFactory(FakePollModel).addOption(fakeDocument.id, testOption.name);
+            expect(fakeDocument.options[fakeDocument.options.length - 1]).to.deep.equal(testOption);
+            expect(saveSpy).to.have.been.called;
+        });
+        
+        it('should return a promise that resolves to the updated poll', () => {
+            const testOption = {
+                name: 'testOption',
+                votes: 0
+            };
+            const fakeDocument = JSON.parse(JSON.stringify(goodPollDocument));
+            fakeDocument.id = '12345';
+            fakeDocument.save = () => {};
+            const FakePollModel = {
+                findById: (id, callback) => {
+                    callback(undefined, fakeDocument);
+                }
+            };
+            
+            const result = pollInterfaceFactory(FakePollModel).addOption(fakeDocument.id, testOption.name);
+            return expect(result).to.eventually.equal(fakeDocument);
+        });
+        
+        it('should reject the promise if the save operation fails', () => {
+            const testOption = {
+                name: 'testOption',
+                votes: 0
+            };
+            const fakeDocument = {
+                save: sinon.stub().rejects('an error occurred'),
+                options: []
+            };
+            const FakePollModel = {
+                findById: (id, callback) => {
+                    callback(undefined, fakeDocument);
+                }
+            };
+            
+            const result = pollInterfaceFactory(FakePollModel).addOption(fakeDocument.id, testOption.name);
+            return expect(result).to.eventually.be.rejected;
+        });
+        
+        it('should reject the promise with \'poll not found\' if the poll does not exist', () => {
+            const testOption = {
+                name: 'testOption',
+                votes: 0
+            };
+            const FakePollModel = {
+                findById: (id, callback) => {
+                    callback(undefined, undefined);
+                }
+            };
+            
+            const result = pollInterfaceFactory(FakePollModel).addOption('12345', testOption.name);
+            return expect(result).to.eventually.be.rejectedWith('poll not found');
+        });
+        
+        it('should reject the promist if an error occurs with the find operation', () => {
+            const testOption = {
+                name: 'testOption',
+                votes: 0
+            };
+            const testError = new Error('find failed!');
+            const FakePollModel = {
+                findById: (id, callback) => {
+                    callback(testError, undefined);
+                }
+            };
+            
+            const result = pollInterfaceFactory(FakePollModel).addOption('12345', testOption.name);
+            return expect(result).to.eventually.be.rejectedWith(testError);
         });
     });
 });
