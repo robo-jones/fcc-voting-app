@@ -5,7 +5,7 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 let config = {
     entry: ['webpack-dev-server/client?https://0.0.0.0:8080',
             'webpack/hot/only-dev-server',
-            './src/index.js',
+            './client/client.js',
     ],
     output: {
         filename: 'script.js',
@@ -28,7 +28,7 @@ let config = {
     
     plugins: [], // empty for dev, but will have uglifyjs pushed in when building for production
     devServer: {
-        contentBase: path.resolve(__dirname, './public'),
+        contentBase: path.resolve(__dirname, './client/dev/'),
         historyApiFallback: true,
         inline: true,
         host: process.env.IP,
