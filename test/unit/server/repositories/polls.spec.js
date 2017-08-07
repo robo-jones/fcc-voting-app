@@ -275,4 +275,16 @@ describe('Polls repository', () => {
             return expect(results).to.eventually.be.rejectedWith('user has already voted');
         });
     });
+    
+    describe('addOption()', () => {
+        it('should search for the provided poll using findPoll()', () => {
+            const testId = '12345';
+            const fakePollModel = {};
+            const pollRepo = pollInterfaceFactory(fakePollModel);
+            const findPollSpy = sinon.spy(pollRepo, 'findPoll');
+            
+            pollRepo.addOption(testId);
+            expect(findPollSpy).to.have.been.calledWith(testId);
+        });
+    });
 });
