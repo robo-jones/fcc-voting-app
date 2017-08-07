@@ -13,11 +13,16 @@ if (config.nodeEnv === 'development') {
 
 //wire up users repository
 const userModel = require('../database/schemas/user.js');
-const userRepository = require('../repositories/user.js')(userModel);
+const usersRepository = require('../repositories/user.js')(userModel);
 
 //wire up users endpoint
-const userEndpoint = require('../endpoints/users.js')(userRepository);
-app.use(userEndpoint);
+const usersEndpoint = require('../endpoints/users.js')(usersRepository);
+app.use('/api', usersEndpoint);
+
+//wire up polls repository and endpoint
+const pollsRepository = require('../repositories/polls.js')(require('../database/schemas/poll.js'));
+const pollsEndpoint = require('../endpoints/polls.js')(pollsRepository);
+app.use('/api', pollsEndpoint);
 
 //session configuration
 app.use(session({
@@ -28,9 +33,12 @@ app.use(session({
 
 //passport configuration
 const passportFactory = require('./passport.js');
-const gitHubStrategy = require('../authentication/githubOAuth.js').gitHubStrategyFactory(userRepository);
-const passport = passportFactory(userRepository);
+const gitHubStrategy = require('../authentication/githubOAuth.js').gitHubStrategyFactory(usersRepository);
+const passport = passportFactory(usersRepository);
 passport.use(gitHubStrategy);
 
+//wire up auth endpoint
+const authEndpoint = require('../endpoints/auth.js')(passport);
+app.use(authEndpoint);
 
 module.exports = app;
