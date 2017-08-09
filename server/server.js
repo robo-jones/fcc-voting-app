@@ -8,6 +8,7 @@ const server = app.listen(config.server.port);
 
 if (config.nodeEnv !== 'test') {
     mongoose.connect(config.mongodb.dbUrl, { useMongoClient: true });
+    console.log(`server listening on port ${config.server.port}`);
 }
 
 module.exports = server;

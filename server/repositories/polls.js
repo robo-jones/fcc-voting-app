@@ -92,17 +92,20 @@ const pollInterfaceFactory = (PollModel) => {
             PollModel.findById(id, async (err, poll) => {
                 if (err) { reject(err); }
                 if (poll) {
-                    if(poll.creator !== requestingUserId) { reject('not authorized'); }
-                    const newOption = {
-                        name: option,
-                        votes: 0
-                    };
-                    poll.options.push(newOption);
-                    try {
-                        await poll.save();
-                        resolve(poll);
-                    } catch (error) {
-                        reject(error);
+                    if(String(poll.creator) !== requestingUserId) {
+                        reject('not authorized');
+                    } else {
+                        const newOption = {
+                            name: option,
+                            votes: 0
+                        };
+                        poll.options.push(newOption);
+                        try {
+                            await poll.save();
+                            resolve(poll);
+                        } catch (error) {
+                            reject(error);
+                        }
                     }
                 } else {
                     reject('poll not found');

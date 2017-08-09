@@ -159,7 +159,7 @@ describe('Polls endpoint', () => {
                 authenticated = false;
                 app = express();
                 app.all('*', fakeAuthMiddleware);
-                app.get('/view/:id', (req, res) => { res.sendStatus(200) });
+                app.get('/poll/:id', (req, res) => { res.sendStatus(200) });
             });
             
             it('should return a 401 if there is no logged in user', async () => {
@@ -196,17 +196,16 @@ describe('Polls endpoint', () => {
                 });
             });
             
-            it('should redirect to the created poll\'s page upon success', async () => {
+            it('should return the created poll object if successful', async () => {
                 authenticated = true;
                 const fakePollsRepository = {
-                    createPoll: () => (Promise.resolve({ id: '67890' }))
+                    createPoll: () => (Promise.resolve(testPoll))
                 };
                 const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
                 app.use(fakePollsEndpoint);
                 
                 const response = await chai.request(app).post('/polls').send(testPoll);
-                expect(response).to.redirect;
-                expect(response.redirects[0].endsWith('/view/67890')).to.be.true;
+                expect(response.body.poll).to.deep.equal(testPoll);
             });
             
             it('should respond with a 500 error if something goes wrong', async () => {
@@ -317,7 +316,7 @@ describe('Polls endpoint', () => {
                 app.get('/mypolls', (req, res) => { res.sendStatus(200) });
                 
                 fakePollsRepository = {
-                    findPoll: () => (Promise.resolve({ creator: testUser.id })),
+                    findPoll: () => (Promise.resolve({ creator: { toString: () => (testUser.id) } })),
                     deletePoll: () => (Promise.resolve({ id: requestId }))
                 };
             });

@@ -31,8 +31,8 @@ const pollsEndpointFactory = (pollsRepository) => {
                         title: req.body.title,
                         options: req.body.options
                     };
-                    const result = await pollsRepository.createPoll(newPollDocument);
-                    res.redirect(`/view/${result.id}`);
+                    const poll = await pollsRepository.createPoll(newPollDocument);
+                    res.json({ poll });
                 } catch (error) {
                     res.sendStatus(500);
                 }
@@ -59,7 +59,7 @@ const pollsEndpointFactory = (pollsRepository) => {
             if (req.isAuthenticated()) {
                 try {
                     const poll = await pollsRepository.findPoll(req.params.id);
-                    if (poll.creator !== req.user.id) {
+                    if (String(poll.creator) !== req.user.id) {
                         res.sendStatus(403);
                     } else {
                         const result = await pollsRepository.deletePoll(req.params.id);

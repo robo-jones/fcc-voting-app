@@ -3,13 +3,10 @@ const path = require('path');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 let config = {
-    entry: ['webpack-dev-server/client?https://0.0.0.0:8080',
-            'webpack/hot/only-dev-server',
-            './client/client.js',
-    ],
+    entry: './client/client.js',
     output: {
         filename: 'script.js',
-        path: path.resolve(__dirname, './public'),
+        path: path.resolve(__dirname, './server/static'),
     },
     module: {
         rules: [
@@ -27,14 +24,6 @@ let config = {
     },
     
     plugins: [], // empty for dev, but will have uglifyjs pushed in when building for production
-    devServer: {
-        contentBase: path.resolve(__dirname, './client/dev/'),
-        historyApiFallback: true,
-        inline: true,
-        host: process.env.IP,
-        port: process.env.PORT,
-        "public": "fcc-dynamicwebapp-projects-robojones.c9users.io"
-    },
     devtool: 'eval-source-map'
 };
 

@@ -3,6 +3,7 @@
 const express = require('express');
 const config = require('./config.js');
 const session = require('express-session');
+const path = require('path');
 
 const app = express();
 
@@ -19,11 +20,6 @@ const usersRepository = require('../repositories/user.js')(userModel);
 const usersEndpoint = require('../endpoints/users.js')(usersRepository);
 app.use('/api', usersEndpoint);
 
-//wire up polls repository and endpoint
-const pollsRepository = require('../repositories/polls.js')(require('../database/schemas/poll.js'));
-const pollsEndpoint = require('../endpoints/polls.js')(pollsRepository);
-app.use('/api', pollsEndpoint);
-
 //session configuration
 app.use(session({
     secret: config.session.secret,
@@ -36,9 +32,26 @@ const passportFactory = require('./passport.js');
 const gitHubStrategy = require('../authentication/githubOAuth.js').gitHubStrategyFactory(usersRepository);
 const passport = passportFactory(usersRepository);
 passport.use(gitHubStrategy);
+app.use(passport.initialize());
+app.use(passport.session());
+
+//wire up polls repository and endpoint
+const pollsRepository = require('../repositories/polls.js')(require('../database/schemas/poll.js'));
+const pollsEndpoint = require('../endpoints/polls.js')(pollsRepository);
+app.use('/api', pollsEndpoint);
 
 //wire up auth endpoint
 const authEndpoint = require('../endpoints/auth.js')(passport);
 app.use(authEndpoint);
+
+//temporary stuff for front-end dev
+app.use('/static', express.static(path.join(__dirname, '../static')));
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '../views'));
+if (config.nodeEnv !== 'test') {
+    //including the client router requires the server-side code to be transpiled, which will break the associated unit tests
+    const clientRouter = require('../react/clientRouter.js');
+    app.get('*', clientRouter);
+}
 
 module.exports = app;

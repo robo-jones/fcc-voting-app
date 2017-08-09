@@ -297,6 +297,8 @@ describe('Polls repository', () => {
             const fakeDocument = JSON.parse(JSON.stringify(goodPollDocument));
             fakeDocument.id = '12345';
             fakeDocument.save = () => {};
+            fakeDocument.creator = new ObjectID();
+            const creatorInput = String(fakeDocument.creator); //since the input will be passed as a string, the test must replicate that behavior
             const FakePollModel = {
                 findById: (id, callback) => {
                     callback(undefined, fakeDocument);
@@ -304,7 +306,7 @@ describe('Polls repository', () => {
             };
             const saveSpy = sinon.spy(fakeDocument, 'save');
             
-            await pollInterfaceFactory(FakePollModel).addOption(fakeDocument.id, testOption.name, fakeDocument.creator);
+            await pollInterfaceFactory(FakePollModel).addOption(fakeDocument.id, testOption.name, creatorInput);
             expect(fakeDocument.options[fakeDocument.options.length - 1]).to.deep.equal(testOption);
             expect(saveSpy).to.have.been.called;
         });
