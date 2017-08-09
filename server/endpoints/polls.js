@@ -19,6 +19,10 @@ const pollsEndpointFactory = (pollsRepository) => {
         });
     
     router.route('/polls')
+        .get(async (req, res) => {
+            const polls = await pollsRepository.findAllPolls();
+            res.json(polls);
+        })
         .post(bodyParser.json(), async (req, res) => {
             if(req.isAuthenticated()) {
                 try {

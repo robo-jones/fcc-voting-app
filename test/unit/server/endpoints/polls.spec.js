@@ -108,6 +108,35 @@ describe('Polls endpoint', () => {
     });
     
     describe('/polls', () => {
+        describe('GET', () => {
+            let app, fakePollsRepository;
+            const testPolls = ['somePoll', 'someOtherPoll'];
+            
+            beforeEach(() => {
+                fakePollsRepository = {
+                    findAllPolls: () => { return Promise.resolve(testPolls); }
+                };
+                app = express();
+            });
+            
+            it('should retrieve all polls from the repository', async () => {
+                const findSpy = sinon.spy(fakePollsRepository, 'findAllPolls');
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                await chai.request(app).get('/polls');
+                expect(findSpy).to.have.been.called;
+            });
+            
+            it('should return all of the polls', async () => {
+                const fakePollsEndpoint = pollsEndpointFactory(fakePollsRepository);
+                app.use(fakePollsEndpoint);
+                
+                const response = await chai.request(app).get('/polls');
+                expect(response.body).to.deep.equal(testPolls);
+            });
+        });
+        
         describe('POST', () => {
             let app, authenticated;
             const testUser = {
