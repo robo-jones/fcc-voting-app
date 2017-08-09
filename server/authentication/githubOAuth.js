@@ -21,8 +21,8 @@ const gitHubAuthFunctionFactory = (userRepository) => {
                 if (err === 'user not found') {
                     //if there was no user in the database, then create a new one
                     const newUserDocument = {
-                        userName: profile.displayName,
-                            github: {
+                        userName: profile.displayName || profile.username,
+                        github: {
                             id: profile.id,
                             username: profile.username,
                             displayName: profile.displayName

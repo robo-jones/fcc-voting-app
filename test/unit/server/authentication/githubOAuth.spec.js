@@ -60,6 +60,23 @@ describe('GitHub OAuth Authorization function', () => {
         githubAuthFunctionFactory(fakeUserRepo)(undefined, undefined, testProfile, sinon.stub());
     });
     
+    it('should create a new user with the GitHub username as the userName, if they do not have a displayName', (done) => {
+        const noDisplayNameUser = JSON.parse(JSON.stringify(testUser));
+        noDisplayNameUser.github.displayName = undefined;
+        noDisplayNameUser.userName = noDisplayNameUser.github.username;
+        const fakeUserRepo = {
+            findUserByGithub: (profile) => {
+                return Promise.reject('user not found');
+            },
+            createUser: (document) => {
+                expect(document).to.deep.equal(noDisplayNameUser);
+                done();
+            }
+        };
+        
+        githubAuthFunctionFactory(fakeUserRepo)(undefined, undefined, noDisplayNameUser.github, sinon.stub());
+    });
+    
     it('should pass a newly created user to Passport', (done) => {
         const fakeUserRepo = {
             findUserByGithub: (profile) => {
