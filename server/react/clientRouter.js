@@ -3,7 +3,8 @@
 import React from 'react';
 import { matchPath, StaticRouter } from 'react-router';
 import ReactDOMServer from 'react-dom/server';
-import Layout from '../../client/components/layout.js';
+import Layout from '../../client/components/Layout.js';
+import { server } from '../config/config.js';
 
 const routes = [
     '/',
@@ -17,11 +18,14 @@ module.exports = async (req, res, next) => {
     if (!match) {
         next();
     } else {
-        const markup = ReactDOMServer.renderToString(<StaticRouter context={{}} location={req.url}><Layout /></StaticRouter>);
+        const appUrl = server.url;
+        const apiRoot = `${server.url}/api`;
         if (req.isAuthenticated()) {
-            res.render('index', { markup, username: req.user.userName, userId: req.user._id });
+            const markup = ReactDOMServer.renderToString(<StaticRouter context={{}} location={req.url}><Layout apiRoot={apiRoot} appUrl={appUrl} username={req.user.userName} userId={req.user._id}/></StaticRouter>);
+            res.render('index', { markup, apiRoot, appUrl, username: req.user.userName, userId: req.user._id });
         } else {
-            res.render('index', { markup, username: 'nobody', userId: '' });
+            const markup = ReactDOMServer.renderToString(<StaticRouter context={{}} location={req.url}><Layout apiRoot={apiRoot} appUrl={appUrl} username={null} userId={req.get('X-Forwarded-For').split(',')[0]}/></StaticRouter>);
+            res.render('index', { markup, apiRoot, appUrl, username: null, userId: req.get('X-Forwarded-For').split(',')[0] });
         }
     }
 };

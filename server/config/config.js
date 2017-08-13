@@ -1,7 +1,8 @@
 'use strict';
 
 const server = {
-    port: process.env.PORT
+    port: process.env.PORT,
+    url: process.env.SERVER_URL
 };
 
 const mongodb = {
