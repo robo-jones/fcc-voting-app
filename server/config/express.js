@@ -44,10 +44,10 @@ app.use('/api', pollsEndpoint);
 const authEndpoint = require('../endpoints/auth.js')(passport);
 app.use(authEndpoint);
 
-//temporary stuff for front-end dev
-app.use('/static', express.static(path.join(__dirname, '../static')));
+//middleware to handle front-end requests and routing
+app.use('/static', express.static(path.join(process.cwd(), '/server/static')));
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, '../views'));
+app.set('views', path.join(process.cwd(), '/server/views'));
 if (config.nodeEnv !== 'test') {
     //including the client router requires the server-side code to be transpiled, which will break the associated unit tests
     const clientRouter = require('../react/clientRouter.js');

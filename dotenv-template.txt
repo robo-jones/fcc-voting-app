@@ -1,0 +1,21 @@
+# This file contains all of the environment variables required for this app. Fill in the values as appropriate
+
+# GitHub OAuth tokens
+GITHUB_KEY=""
+GITHUB_SECRET=""
+
+# MongoDB connection variables
+DB_USER=""
+DB_PASSWORD=""
+DB_HOST=""
+DB_PORT=
+DB=""
+
+# Express session secret
+SESSION_SECRET=""
+
+# Base url of this server
+SERVER_URL=""
+
+# NODE_ENV; change based on server type
+NODE_ENV="development"

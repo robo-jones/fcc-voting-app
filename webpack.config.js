@@ -1,8 +1,9 @@
 const webpack = require('webpack');
 const path = require('path');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const nodeExternals = require('webpack-node-externals');
 
-let config = {
+let clientConfig = {
+    name: 'client build',
     entry: './client/client.js',
     output: {
         filename: 'script.js',
@@ -27,10 +28,42 @@ let config = {
     devtool: 'eval-source-map'
 };
 
-module.exports = config;
-
 if (process.env.NODE_ENV === 'production') {
-  module.exports.plugins.push(
-    new webpack.optimize.UglifyJsPlugin() // minify js
-  );
+    clientConfig.plugins.push(new webpack.LoaderOptionsPlugin({
+      minimize: true,
+      debug: false
+    }));
+    clientConfig.plugins.push(new webpack.optimize.UglifyJsPlugin({
+      beautify: false,
+      mangle: {
+        screw_ie8: true,
+        keep_fnames: true
+      },
+      compress: {
+        screw_ie8: true
+      },
+      comments: false
+    }));
 }
+
+const serverConfig = {
+    name: 'server build',
+    entry: './server/server.js',
+    output: {
+        filename: 'build.js',
+        path: path.resolve(__dirname, './server')
+    },
+    target: 'node',
+    devtool: 'source-map',
+    module: {
+        rules: [{
+            test: /\.js$/,
+            exclude: /node_modules/,
+            loader: 'babel-loader'
+        }]
+    },
+    externals: [nodeExternals()],
+};
+
+module.exports = [clientConfig, serverConfig];
+
